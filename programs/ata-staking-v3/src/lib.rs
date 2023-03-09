@@ -162,6 +162,30 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn unstake_nft(
+        ctx: Context<UnstakeNFT>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        mint_address: Pubkey,
+        epoch: i64,
+        vault_bump: u8,
+        pool_bump: u8,
+        whitelist_nft_bump: u8,
+        epoch_bump: u8,
+    ) -> Result<()> {
+        instructions::unstake_nft::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            mint_address, 
+            epoch, 
+            vault_bump, 
+            pool_bump, 
+            whitelist_nft_bump, 
+            epoch_bump
+        )
+    }
+
     
 }
 
