@@ -1,5 +1,6 @@
 pub mod initialize_stake_pool;
 pub mod initialize_epoch_state_account;
+pub mod update_epoch;
 pub mod stake;
 pub mod initialize_claim_state;
 pub mod claim_reward;
@@ -9,6 +10,7 @@ pub mod stake_nft;
 
 pub use initialize_stake_pool::*;
 pub use initialize_epoch_state_account::*;
+pub use update_epoch::*;
 pub use stake::*;
 pub use initialize_claim_state::*;
 pub use claim_reward::*;

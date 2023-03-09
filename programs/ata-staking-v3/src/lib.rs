@@ -32,6 +32,24 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn update_epoch(
+        ctx: Context<UpdateEpoch>,
+        target_epoch: i64, 
+        prev_epoch: i64,
+        pool_owner: Pubkey,
+        target_epoch_bump: u8,
+        prev_epoch_bump: u8
+    ) -> Result<()> {
+        instructions::update_epoch::handler(
+            ctx, 
+            target_epoch, 
+            prev_epoch, 
+            pool_owner, 
+            target_epoch_bump, 
+            prev_epoch_bump
+        )
+    }
+
     pub fn stake(
         ctx: Context<Stake>, 
         pool_account_owner: Pubkey, 
@@ -143,6 +161,7 @@ pub mod ata_staking_v3 {
             package_number
         )
     }
+
     
 }
 
