@@ -124,6 +124,33 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn stake_nft(
+        ctx: Context<StakeNFT>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        current_epoch: i64,
+        prev_epoch: i64,
+        mint_address: Pubkey,
+        pool_bump: u8,
+        epoch_bump: u8,
+        prev_epoch_bump: u8,
+        whitelist_nft_bump: u8,
+        package_number: u8
+    ) -> Result<()> {
+        instructions::stake_nft::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            current_epoch, 
+            prev_epoch, 
+            mint_address, 
+            pool_bump, 
+            epoch_bump, 
+            prev_epoch_bump, 
+            whitelist_nft_bump, 
+            package_number
+        )
+    }
     
 }
 

@@ -1,21 +1,33 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token, associated_token};
-use crate::state::{VaultAccount, PoolAccount, EpochStateAccount};
+use crate::state::{
+  VaultAccount, 
+  PoolAccount, 
+  WhitelistNFTInfoAccount,
+  EpochStateAccount
+};
 use crate::errors::AtaSkakingError;
-use crate::utils::{print_vault_account, print_epoch_state_account};
-use crate::constant::time::{EPOCH_DURATION, EPOCH_START_TS};
+use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
+use crate::constant::{METADATA_PROGRAM_ID, EPOCH_DURATION, EPOCH_START_TS};
+use crate::utils::{
+  print_epoch_state_account, 
+  print_vault_account
+};
 
 #[derive(Accounts)]
 #[instruction(
-  pool_account_owner: Pubkey, 
   vault_id: Pubkey,
+  pool_account_owner: Pubkey,
   current_epoch: i64,
-  prev_epoch: i64, 
+  prev_epoch: i64,
+  mint_address: Pubkey,
   pool_bump: u8,
   epoch_bump: u8,
-  prev_epoch_bump: u8
+  prev_epoch_bump: u8,
+  whitelist_nft_bump: u8
 )]
-pub struct Stake<'info> {
+
+pub struct StakeNFT<'info> {
   #[account(
     init,
     seeds = [
@@ -58,30 +70,102 @@ pub struct Stake<'info> {
     bump=prev_epoch_bump
   )]
   pub prev_epoch_state_account: Account<'info, EpochStateAccount>,
+  #[account(
+    mut,
+    seeds=[
+      b"whitelist_nft", 
+      pool_account_owner.key().as_ref(), 
+      mint_address.as_ref()
+      ],
+    bump=whitelist_nft_bump
+  )]
+  pub whitelist_nft_info_account: Account<'info, WhitelistNFTInfoAccount>,
   #[account(mut)]
   pub user: Signer<'info>,
   #[account(mut)]
-  pub user_ata_token_account: Box<Account<'info, token::TokenAccount>>,
+  pub vault_nft_token_account: Account<'info, token::TokenAccount>, //Check in handler
   #[account(mut)]
-  pub vault_ata_token_account: Box<Account<'info, token::TokenAccount>>, /// checked in handler
+  pub user_nft_token_account: Account<'info, token::TokenAccount>,
+  ///CHECK: checked via instruction
+  pub metadata_account: AccountInfo<'info>,
+  ///CHECK : check via #[account(address = crate::address::METADATA_PROGRAM_ID.parse::<Pubkey>().unwrap())]
+  #[account(address = METADATA_PROGRAM_ID.parse::<Pubkey>().unwrap())]
+  pub token_metadata_program: AccountInfo<'info>,
   pub system_program: Program<'info, System>,
   pub token_program: Program<'info, token::Token>,
 }
 
 pub fn handler(
-  ctx: Context<Stake>, 
-  _pool_account_owner: Pubkey, 
+  ctx: Context<StakeNFT>,
   vault_id: Pubkey,
+  _pool_account_owner: Pubkey,
   current_epoch: i64,
   prev_epoch: i64,
+  mint_address: Pubkey,
   _pool_bump: u8,
   _epoch_bump: u8,
   _prev_epoch_bump: u8,
-  staked_amount: u64,
-  package_number: u8,
+  _whitelist_nft_bump: u8,
+  package_number: u8
 ) -> Result<()> {
-  
   if package_number < 1 && package_number > 4 {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  let user_nft_token_account = &ctx.accounts.user_nft_token_account;
+  let user = &ctx.accounts.user;
+
+  if user_nft_token_account.owner != user.key() {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  if user_nft_token_account.mint != mint_address {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  if user_nft_token_account.amount != 1 {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  let nft_metadata_account = &ctx.accounts.metadata_account;
+
+  if nft_metadata_account.owner.key() != ctx.accounts.token_metadata_program.key() {
+    return err!(AtaSkakingError::UnknownError)
+  };
+
+  let metadata_seed = &[
+    b"metadata",
+    ctx.accounts.token_metadata_program.key.as_ref(),
+    user_nft_token_account.mint.as_ref(),
+  ];
+
+  let (expected_metadata_key, _metadata_bump) = Pubkey::find_program_address(
+    metadata_seed, 
+    ctx.accounts.token_metadata_program.key
+  );
+
+  if nft_metadata_account.key() != expected_metadata_key {
+    return err!(AtaSkakingError::UnknownError);
+  }
+
+  if nft_metadata_account.data_is_empty() {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  let nft_metadata: Metadata = Metadata::from_account_info(&nft_metadata_account)?;
+  let nft_first_creator = &nft_metadata.data.creators.unwrap()[0];
+  
+  if !nft_first_creator.verified {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+
+  if nft_first_creator.address.to_string() != crate::constant::EXPECTED_NFT_CREATOR_ADDRESS {
+    return  err!(AtaSkakingError::UnknownError);
+  }
+  
+  let whitelist_nft_info_account = &mut ctx.accounts.whitelist_nft_info_account;
+  
+  if whitelist_nft_info_account.is_staking {
     return  err!(AtaSkakingError::UnknownError);
   }
 
@@ -100,7 +184,9 @@ pub fn handler(
   } else {
     crate::constant::LOCK_DURTION_4 // 2 years
   };
-  
+
+  let staked_amount = whitelist_nft_info_account.ata_value;
+
   let vault_account = &mut ctx.accounts.vault_account;
   vault_account.owner = ctx.accounts.user.key();
   vault_account.pool = ctx.accounts.pool_account.key();
@@ -109,29 +195,28 @@ pub fn handler(
   vault_account.staked_amount = staked_amount;
   vault_account.staked_time = staked_time;
   vault_account.unlock_time = staked_time + lock_duration;
-  vault_account.use_nft = false;
+  vault_account.use_nft = true;
 
-  
   let expected_vault_token_account = associated_token::get_associated_token_address(
     &vault_account.key(), 
-    &crate::constant::ATA_TOKEN_ADDRESS.parse::<Pubkey>().unwrap()
+    &mint_address
   );
 
-  if ctx.accounts.vault_ata_token_account.key() != expected_vault_token_account {
+  if ctx.accounts.vault_nft_token_account.key() != expected_vault_token_account {
     return err!(AtaSkakingError::UnknownError);
   }
 
   let cpi_ctx = CpiContext::new(
     ctx.accounts.token_program.to_account_info(),
     token::Transfer {
-        from: ctx.accounts.user_ata_token_account.to_account_info(),
-        to: ctx.accounts.vault_ata_token_account.to_account_info(),
+        from: user_nft_token_account.to_account_info(),
+        to: ctx.accounts.vault_nft_token_account.to_account_info(),
         authority: ctx.accounts.user.to_account_info(),
     },
-  );
-  token::transfer(cpi_ctx, staked_amount)?;
+  ) ;
+  token::transfer(cpi_ctx, 1)?;
 
-  msg!("token transfered");
+  msg!("nft transfered");
 
   msg!("vault detail");
   print_vault_account(vault_account);
@@ -155,6 +240,6 @@ pub fn handler(
   }
 
   print_epoch_state_account(epoch_state_account);
-  
+
   Ok(())
 }
