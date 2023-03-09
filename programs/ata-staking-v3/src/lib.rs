@@ -116,15 +116,19 @@ pub mod ata_staking_v3 {
         ctx: Context<Unstake>,
         vault_id: Pubkey,
         pool_account_owner: Pubkey,
+        epoch: i64,
         vault_bump: u8,
-        pool_bump: u8
+        pool_bump: u8,
+        epoch_bump: u8,
     ) -> Result<()> {
         instructions::unstake::handler(
             ctx, 
             vault_id, 
             pool_account_owner, 
+            epoch, 
             vault_bump, 
-            pool_bump
+            pool_bump, 
+            epoch_bump
         )
     }
 

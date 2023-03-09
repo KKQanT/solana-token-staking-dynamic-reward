@@ -1,19 +1,22 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token};
-use crate::state::{VaultAccount, PoolAccount};
+use crate::state::{VaultAccount, PoolAccount, EpochStateAccount};
 use crate::errors::AtaSkakingError;
 use std::ops::DerefMut;
 use std::io::Cursor;
 use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
 use std::io::Write;
-use crate::constant::ATA_TOKEN_ADDRESS;
+use crate::constant::{ATA_TOKEN_ADDRESS, EPOCH_DURATION, EPOCH_START_TS};
+use crate::utils::print_epoch_state_account;
 
 #[derive(Accounts)]
 #[instruction(
   vault_id: Pubkey,
   pool_account_owner: Pubkey,
+  epoch: i64,
   vault_bump: u8,
-  pool_bump: u8
+  pool_bump: u8,
+  epoch_bump: u8,
 )]
 
 pub struct Unstake<'info> {
@@ -37,6 +40,16 @@ pub vault_account: Account<'info, VaultAccount>,
   bump=pool_bump
 )]
 pub pool_account: Account<'info, PoolAccount>,
+#[account(
+  mut,
+  seeds = [
+    b"epoch_state",
+    epoch.to_le_bytes().as_ref(),
+    pool_account_owner.as_ref()
+  ],
+  bump=epoch_bump
+)]
+pub epoch_state_account: Account<'info, EpochStateAccount>,
 #[account(mut)]
 pub user: Signer<'info>,
 #[account(mut)]
@@ -51,8 +64,10 @@ pub fn handler(
   ctx: Context<Unstake>,
   vault_id: Pubkey,
   _pool_account_owner: Pubkey,
+  epoch: i64,
   vault_bump: u8,
-  _pool_bump: u8
+  _pool_bump: u8,
+  _epoch_bump: u8,
 ) -> Result<()> {
   
   let vault_account = &mut ctx.accounts.vault_account;
@@ -89,6 +104,24 @@ pub fn handler(
   );
 
   token::transfer(cpi_ctx, vault_account.staked_amount)?;
+
+  let weight = 1;
+
+  let expected_current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
+
+  if epoch != expected_current_epoch {
+    return err!(AtaSkakingError::UnknownError)
+  }
+
+  let epoch_state_account = &mut ctx.accounts.epoch_state_account;
+
+  if epoch_state_account.total_weighted_stake == 0 {
+    return err!(AtaSkakingError::UnknownError);
+  }
+
+  epoch_state_account.total_weighted_stake -= weight*vault_account.staked_amount;
+
+  print_epoch_state_account(epoch_state_account);
 
   let should_close_vault_token_account = {
     ctx.accounts.vault_ata_token_account.reload()?;
