@@ -37,10 +37,8 @@ pub mod ata_staking_v3 {
         pool_account_owner: Pubkey, 
         vault_id: Pubkey,
         current_epoch: i64,
-        prev_epoch: i64,
         pool_bump: u8,
         epoch_bump: u8,
-        prev_epoch_bump: u8,
         staked_amount: u64,
         package_number: u8,
     ) -> Result<()> {
@@ -49,10 +47,8 @@ pub mod ata_staking_v3 {
             pool_account_owner, 
             vault_id, 
             current_epoch, 
-            prev_epoch, 
             pool_bump, 
             epoch_bump, 
-            prev_epoch_bump, 
             staked_amount, 
             package_number
         )

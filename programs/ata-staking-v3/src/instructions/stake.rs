@@ -10,10 +10,8 @@ use crate::constant::time::{EPOCH_DURATION, EPOCH_START_TS};
   pool_account_owner: Pubkey, 
   vault_id: Pubkey,
   current_epoch: i64,
-  prev_epoch: i64, 
   pool_bump: u8,
   epoch_bump: u8,
-  prev_epoch_bump: u8
 )]
 pub struct Stake<'info> {
   #[account(
@@ -48,16 +46,6 @@ pub struct Stake<'info> {
     bump=epoch_bump
   )]
   pub epoch_state_account: Account<'info, EpochStateAccount>,
-  #[account(
-    mut,
-    seeds = [
-      b"epoch_state",
-      prev_epoch.to_le_bytes().as_ref(),
-      pool_account_owner.as_ref()
-    ],
-    bump=prev_epoch_bump
-  )]
-  pub prev_epoch_state_account: Account<'info, EpochStateAccount>,
   #[account(mut)]
   pub user: Signer<'info>,
   #[account(mut)]
@@ -73,20 +61,14 @@ pub fn handler(
   _pool_account_owner: Pubkey, 
   vault_id: Pubkey,
   current_epoch: i64,
-  prev_epoch: i64,
   _pool_bump: u8,
   _epoch_bump: u8,
-  _prev_epoch_bump: u8,
   staked_amount: u64,
   package_number: u8,
 ) -> Result<()> {
   
   if package_number < 1 && package_number > 4 {
     return  err!(AtaSkakingError::UnknownError);
-  }
-
-  if current_epoch - 1 != prev_epoch {
-    return err!(AtaSkakingError::UnknownError);
   }
 
   let staked_time = Clock::get().unwrap().unix_timestamp;
@@ -147,12 +129,10 @@ pub fn handler(
   let epoch_state_account = &mut ctx.accounts.epoch_state_account;
 
   if epoch_state_account.total_weighted_stake == 0 {
-    let prev_epoch_state_account = &ctx.accounts.prev_epoch_state_account;
-    let recent_total_weighted_stake = prev_epoch_state_account.total_weighted_stake;
-    epoch_state_account.total_weighted_stake = recent_total_weighted_stake + weight*staked_amount;
-  } else {
-    epoch_state_account.total_weighted_stake += weight*staked_amount;
+    return err!(AtaSkakingError::UnknownError);
   }
+  epoch_state_account.total_weighted_stake += weight*staked_amount;
+  
 
   print_epoch_state_account(epoch_state_account);
   
