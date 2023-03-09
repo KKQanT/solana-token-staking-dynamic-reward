@@ -98,6 +98,22 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn unstake(
+        ctx: Context<Unstake>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        vault_bump: u8,
+        pool_bump: u8
+    ) -> Result<()> {
+        instructions::unstake::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            vault_bump, 
+            pool_bump
+        )
+    }
+
     
 }
 
