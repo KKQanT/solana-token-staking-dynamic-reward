@@ -76,6 +76,28 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn claim_reward(
+        ctx: Context<ClaimReward>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        epoch: i64,
+        vault_bump: u8,
+        pool_bump:u8,
+        claim_state_bump: u8,
+        epoch_bump: u8
+    ) -> Result<()> {
+        instructions::claim_reward::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            epoch, 
+            vault_bump, 
+            pool_bump,
+            claim_state_bump, 
+            epoch_bump
+        )
+    }
+
     
 }
 
