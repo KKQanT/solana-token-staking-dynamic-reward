@@ -19,11 +19,9 @@ use crate::utils::{
   vault_id: Pubkey,
   pool_account_owner: Pubkey,
   current_epoch: i64,
-  prev_epoch: i64,
   mint_address: Pubkey,
   pool_bump: u8,
   epoch_bump: u8,
-  prev_epoch_bump: u8,
   whitelist_nft_bump: u8
 )]
 
@@ -62,16 +60,6 @@ pub struct StakeNFT<'info> {
   pub epoch_state_account: Account<'info, EpochStateAccount>,
   #[account(
     mut,
-    seeds = [
-      b"epoch_state",
-      prev_epoch.to_le_bytes().as_ref(),
-      pool_account_owner.as_ref()
-    ],
-    bump=prev_epoch_bump
-  )]
-  pub prev_epoch_state_account: Account<'info, EpochStateAccount>,
-  #[account(
-    mut,
     seeds=[
       b"whitelist_nft", 
       pool_account_owner.key().as_ref(), 
@@ -100,11 +88,9 @@ pub fn handler(
   vault_id: Pubkey,
   _pool_account_owner: Pubkey,
   current_epoch: i64,
-  prev_epoch: i64,
   mint_address: Pubkey,
   _pool_bump: u8,
   _epoch_bump: u8,
-  _prev_epoch_bump: u8,
   _whitelist_nft_bump: u8,
   package_number: u8
 ) -> Result<()> {
@@ -169,10 +155,6 @@ pub fn handler(
     return  err!(AtaSkakingError::UnknownError);
   }
 
-  if current_epoch - 1 != prev_epoch {
-    return err!(AtaSkakingError::UnknownError);
-  }
-
   let staked_time = Clock::get().unwrap().unix_timestamp;
 
   let lock_duration: i64 = if package_number == 1 {
@@ -232,12 +214,9 @@ pub fn handler(
   let epoch_state_account = &mut ctx.accounts.epoch_state_account;
 
   if epoch_state_account.total_weighted_stake == 0 {
-    let prev_epoch_state_account = &ctx.accounts.prev_epoch_state_account;
-    let recent_total_weighted_stake = prev_epoch_state_account.total_weighted_stake;
-    epoch_state_account.total_weighted_stake = recent_total_weighted_stake + weight*staked_amount;
-  } else {
-    epoch_state_account.total_weighted_stake += weight*staked_amount;
+    return err!(AtaSkakingError::UnknownError);
   }
+  epoch_state_account.total_weighted_stake += weight*staked_amount;
 
   print_epoch_state_account(epoch_state_account);
 
