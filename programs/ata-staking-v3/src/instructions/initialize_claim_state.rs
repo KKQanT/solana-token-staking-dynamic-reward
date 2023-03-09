@@ -6,6 +6,7 @@ use crate::state::{
   PoolAccount
 };
 use crate::errors::AtaSkakingError;
+use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 
 #[derive(Accounts)]
 #[instruction(
@@ -70,7 +71,7 @@ pub fn handler(
   ctx: Context<InitClaimReward>,
   _pool_account_owner: Pubkey,
   _vault_id: Pubkey,
-  _epoch: i64,
+  epoch: i64,
   _pool_bump: u8,
   _epoch_bump: u8
 ) -> Result<()> {
@@ -78,6 +79,15 @@ pub fn handler(
   if epoch_state_account.total_weighted_stake == 0 {
     return err!(AtaSkakingError::UnknownError)
   }
+
+  let vault_account = &ctx.accounts.vault_account;
+  let staked_time = vault_account.staked_time;
+  let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
+
+  if staked_epoch > epoch {
+    return err!(AtaSkakingError::UnknownError)
+  } 
+
   let claim_state_account = &mut ctx.accounts.claim_state_account;
   claim_state_account.is_claimed = false;
 

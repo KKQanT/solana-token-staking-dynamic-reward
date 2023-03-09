@@ -7,6 +7,7 @@ use crate::state::{
   ClaimState
 };
 use crate::errors::AtaSkakingError;
+use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 
 #[derive(Accounts)]
 #[instruction( 
@@ -73,18 +74,27 @@ pub fn handler(
   ctx: Context<ClaimReward>,
   _vault_id: Pubkey,
   pool_account_owner: Pubkey,
-  _epoch: i64,
+  epoch: i64,
   _vault_bump: u8,
   pool_bump:u8,
   _claim_state_bump: u8,
   _epoch_bump: u8
 ) -> Result<()> {
+
   let vault_account = &ctx.accounts.vault_account;
+  
   let now_ts = Clock::get().unwrap().unix_timestamp;
   if now_ts < vault_account.unlock_time {
     return err!(AtaSkakingError::UnknownError);
   }
-  
+
+  let staked_time = vault_account.staked_time;
+  let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
+
+  if staked_epoch > epoch {
+    return err!(AtaSkakingError::UnknownError)
+  }
+
   let claim_state_account = &mut ctx.accounts.claim_state_account;
   if claim_state_account.is_claimed {
     return err!(AtaSkakingError::UnknownError);
