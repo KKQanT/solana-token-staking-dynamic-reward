@@ -114,6 +114,16 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn whitelist_nft(
+        ctx: Context<WhitelistNFT>,
+        mint_address: Pubkey,
+        ata_value: u64 
+    ) -> Result<()> {
+        instructions::whitelist_nft::handler(
+            ctx, mint_address, ata_value
+        )
+    }
+
     
 }
 
