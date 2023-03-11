@@ -5,7 +5,7 @@ use crate::state::{
   VaultAccount,
   PoolAccount
 };
-use crate::errors::AtaSkakingError;
+use crate::errors::*;
 use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 
 #[derive(Accounts)]
@@ -14,7 +14,8 @@ use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
   vault_id: Pubkey,
   epoch: i64,
   pool_bump: u8,
-  epoch_bump: u8
+  epoch_bump: u8,
+  vault_bump: u8,
 )]
 pub struct InitClaimReward<'info> {
   #[account(
@@ -50,16 +51,14 @@ pub struct InitClaimReward<'info> {
   )]
   pub epoch_state_account: Account<'info, EpochStateAccount>,
   #[account(
-    init,
+    mut,
     seeds = [
       b"vault",
       vault_id.as_ref(),
       pool_account.key().as_ref(),
       user.key().as_ref()
     ],
-    bump,
-    payer = user,
-    space = VaultAccount::LEN
+    bump=vault_bump
   )]
   pub vault_account: Account<'info, VaultAccount>,
   #[account(mut)]
@@ -73,11 +72,13 @@ pub fn handler(
   _vault_id: Pubkey,
   epoch: i64,
   _pool_bump: u8,
-  _epoch_bump: u8
+  _epoch_bump: u8,
+  _vault_bump: u8,
 ) -> Result<()> {
   let epoch_state_account = &ctx.accounts.epoch_state_account;
   if epoch_state_account.total_weighted_stake == 0 {
-    return err!(AtaSkakingError::UnknownError)
+    msg!("total_weighted_stake == 0");
+    return err!(ConditionError::InvalidCondition)
   }
 
   let vault_account = &ctx.accounts.vault_account;
@@ -85,7 +86,8 @@ pub fn handler(
   let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
 
   if staked_epoch > epoch {
-    return err!(AtaSkakingError::UnknownError)
+    msg!("staked_epoch > epoch");
+    return err!(TimeError::InvalidEpoch)
   } 
 
   let claim_state_account = &mut ctx.accounts.claim_state_account;

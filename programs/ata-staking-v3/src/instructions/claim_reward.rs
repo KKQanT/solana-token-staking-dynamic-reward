@@ -6,7 +6,7 @@ use crate::state::{
   EpochStateAccount,
   ClaimState
 };
-use crate::errors::AtaSkakingError;
+use crate::errors::*;
 use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 
 #[derive(Accounts)]
@@ -85,19 +85,22 @@ pub fn handler(
   
   let now_ts = Clock::get().unwrap().unix_timestamp;
   if now_ts < vault_account.unlock_time {
-    return err!(AtaSkakingError::UnknownError);
+    msg!("not unlock time");
+    return err!(TimeError::InvalidTime);
   }
 
   let staked_time = vault_account.staked_time;
   let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
 
   if staked_epoch > epoch {
-    return err!(AtaSkakingError::UnknownError)
+    msg!("staked_epoch > epoch");
+    return err!(TimeError::InvalidEpoch)
   }
 
   let claim_state_account = &mut ctx.accounts.claim_state_account;
   if claim_state_account.is_claimed {
-    return err!(AtaSkakingError::UnknownError);
+    msg!("is claimed = True");
+    return err!(ConditionError::InvalidCondition);
   } 
 
   let epoch_state_account = &ctx.accounts.epoch_state_account;
@@ -108,7 +111,8 @@ pub fn handler(
   let weighted_stake: u64 = vault_account.staked_amount*weight;
   
   if weighted_stake > total_weighted_stake {
-    return err!(AtaSkakingError::UnknownError);
+    msg!("weighted_stake > total_weighted_stake");
+    return err!(ConditionError::InvalidCondition);
   }
 
   let reward_amount = (weighted_stake/total_weighted_stake) * total_reward_per_epoch;

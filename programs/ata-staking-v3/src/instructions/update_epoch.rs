@@ -51,6 +51,7 @@ pub fn handler(
   let expected_current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
 
   if expected_current_epoch < target_epoch {
+    msg!("expected_current_epoch < target_epoch");
     return err!(AtaSkakingError::UnknownError)
   }
 
@@ -63,10 +64,12 @@ pub fn handler(
   print_epoch_state_account(epoch_state_account);
 
   if epoch_state_account.total_weighted_stake > 0 {
+    msg!("total_weighted_stake > 0");
     return err!(AtaSkakingError::UnknownError)
   }
 
   if prev_epoch_state_account.total_weighted_stake == 0 {
+    msg!("total_weighted_stake = 0");
     return err!(AtaSkakingError::UnknownError)
   }
 

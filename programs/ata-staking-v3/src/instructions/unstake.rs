@@ -74,10 +74,12 @@ pub fn handler(
   let now_ts = Clock::get().unwrap().unix_timestamp;
 
   if  (vault_account.package_number != 1) && (now_ts < vault_account.unlock_time) {
+    msg!("invalid package number");
     return  err!(AtaSkakingError::UnknownError);
   }
 
   if ctx.accounts.vault_ata_token_account.mint != ATA_TOKEN_ADDRESS.parse::<Pubkey>().unwrap() {
+    msg!("invalid ATA_TOKEN_ADDRESS");
     return err!(AtaSkakingError::UnknownError);
   }
 
@@ -110,12 +112,14 @@ pub fn handler(
   let expected_current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
 
   if epoch != expected_current_epoch {
+    msg!("invalid epoch");
     return err!(AtaSkakingError::UnknownError)
   }
 
   let epoch_state_account = &mut ctx.accounts.epoch_state_account;
 
   if epoch_state_account.total_weighted_stake == 0 {
+    msg!("total_weighted_stake = 0");
     return err!(AtaSkakingError::UnknownError);
   }
 

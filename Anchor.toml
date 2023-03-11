@@ -2,14 +2,14 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-ata_staking_v3 = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+ata_staking_v3 = "AtA3riahYEopN59jQu6gTL8Dix7XKunY2PBH3jnRv55u"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "/root/.config/solana/id.json"
+cluster = "devnet"
+wallet = "update_auth.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

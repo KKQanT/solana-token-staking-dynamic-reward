@@ -6,5 +6,5 @@ pub struct ClaimState {
 }
 
 impl ClaimState {
-    pub const LEN : usize = 1;
+    pub const LEN : usize = 8 + 1;
 }

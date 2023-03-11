@@ -68,6 +68,7 @@ pub fn handler(
 ) -> Result<()> {
   
   if package_number < 1 && package_number > 4 {
+    msg!("invalid package");
     return  err!(AtaSkakingError::UnknownError);
   }
 
@@ -92,6 +93,7 @@ pub fn handler(
   vault_account.staked_time = staked_time;
   vault_account.unlock_time = staked_time + lock_duration;
   vault_account.use_nft = false;
+  vault_account.initialized_close_vault = false;
 
   
   let expected_vault_token_account = associated_token::get_associated_token_address(
@@ -100,6 +102,7 @@ pub fn handler(
   );
 
   if ctx.accounts.vault_ata_token_account.key() != expected_vault_token_account {
+    msg!("invalid vault_ata_token_account");
     return err!(AtaSkakingError::UnknownError);
   }
 
@@ -123,12 +126,14 @@ pub fn handler(
   let expected_current_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
 
   if current_epoch != expected_current_epoch {
+    msg!("invalid current_epoch");
     return err!(AtaSkakingError::UnknownError)
   }
 
   let epoch_state_account = &mut ctx.accounts.epoch_state_account;
 
   if epoch_state_account.total_weighted_stake == 0 {
+    msg!("total_weighted_stake = 0");
     return err!(AtaSkakingError::UnknownError);
   }
   epoch_state_account.total_weighted_stake += weight*staked_amount;

@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("AtA3riahYEopN59jQu6gTL8Dix7XKunY2PBH3jnRv55u");
 
 pub mod instructions;
 pub mod state;
@@ -25,7 +25,7 @@ pub mod ata_staking_v3 {
     pub fn initialize_epoch_state_account(
         ctx: Context<InitializeEpochStateAccount>,
         total_reward_per_epoch: u64,
-        epoch: u64
+        epoch: i64,
     ) -> Result<()> {
         instructions::initialize_epoch_state_account::handler(
             ctx, total_reward_per_epoch, epoch
@@ -47,6 +47,22 @@ pub mod ata_staking_v3 {
             pool_owner, 
             target_epoch_bump, 
             prev_epoch_bump
+        )
+    }
+
+    pub fn authority_update_epoch(
+        ctx: Context<AuthorityUpdateEpoch>,
+        total_weighted_stake: u64,
+        total_reward_per_epoch: u64,
+        epoch: i64,
+        epoch_bump: u8,
+    ) -> Result<()> {
+        instructions::authority_update_epoch::handler(
+            ctx, 
+            total_weighted_stake, 
+            total_reward_per_epoch, 
+            epoch, 
+            epoch_bump
         )
     }
 
@@ -78,7 +94,8 @@ pub mod ata_staking_v3 {
         vault_id: Pubkey,
         epoch: i64,
         pool_bump: u8,
-        epoch_bump: u8
+        epoch_bump: u8,
+        vault_bump: u8
     ) -> Result<()> {
         instructions::initialize_claim_state::handler(
             ctx, 
@@ -86,7 +103,8 @@ pub mod ata_staking_v3 {
             vault_id, 
             epoch, 
             pool_bump, 
-            epoch_bump
+            epoch_bump,
+            vault_bump
         )
     }
 
