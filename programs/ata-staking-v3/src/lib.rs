@@ -208,6 +208,44 @@ pub mod ata_staking_v3 {
         )
     }
 
+    pub fn init_unstake(
+        ctx: Context<InitUnstake>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        vault_bump: u8,
+        pool_bump: u8,
+    ) -> Result<()> {
+        instructions::init_unstake::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            vault_bump, 
+            pool_bump
+        )
+    }
+
+    pub fn close_claim_state(
+        ctx: Context<CloseClaimReward>,
+        vault_id: Pubkey,
+        pool_account_owner: Pubkey,
+        epoch: i64,
+        vault_bump: u8,
+        pool_bump: u8,
+        claim_state_bump: u8,
+        epoch_bump: u8
+    ) -> Result<()> {
+        instructions::close_claim_state::handler(
+            ctx, 
+            vault_id, 
+            pool_account_owner, 
+            epoch, 
+            vault_bump, 
+            pool_bump, 
+            claim_state_bump, 
+            epoch_bump
+        )
+    }
+
     
 }
 

@@ -75,6 +75,7 @@ pub fn handler(
   _epoch_bump: u8,
   _vault_bump: u8,
 ) -> Result<()> {
+
   let epoch_state_account = &ctx.accounts.epoch_state_account;
   if epoch_state_account.total_weighted_stake == 0 {
     msg!("total_weighted_stake == 0");
@@ -82,6 +83,12 @@ pub fn handler(
   }
 
   let vault_account = &ctx.accounts.vault_account;
+  
+  if vault_account.initialized_close_vault {
+    msg!("vault has been commited as closing vault");
+    return  err!(ConditionError::InvalidCondition);
+  }
+
   let staked_time = vault_account.staked_time;
   let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
   
