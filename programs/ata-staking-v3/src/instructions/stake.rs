@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token, associated_token};
+use crate::{get_lock_duration, get_vesting_duration, get_ten_time_weight};
 use crate::state::{VaultAccount, PoolAccount, EpochStateAccount};
 use crate::errors::AtaSkakingError;
 use crate::utils::{print_vault_account, print_epoch_state_account};
@@ -74,15 +75,8 @@ pub fn handler(
 
   let staked_time = Clock::get().unwrap().unix_timestamp;
 
-  let lock_duration: i64 = if package_number == 1 {
-    crate::constant::LOCK_DURTION_1 //1 month
-  } else if package_number == 2 {
-    crate::constant::LOCK_DURTION_2 //3 months
-  } else if package_number == 3 {
-    crate::constant::LOCK_DURTION_3 // 1 year
-  } else {
-    crate::constant::LOCK_DURTION_4 // 2 years
-  };
+  let lock_duration = get_lock_duration(&package_number);
+  let vesting_duration = get_vesting_duration(&package_number);
   
   let vault_account = &mut ctx.accounts.vault_account;
   vault_account.owner = ctx.accounts.user.key();
@@ -92,6 +86,7 @@ pub fn handler(
   vault_account.staked_amount = staked_amount;
   vault_account.staked_time = staked_time;
   vault_account.unlock_time = staked_time + lock_duration;
+  vault_account.vesting_end_time = staked_time + lock_duration + vesting_duration;
   vault_account.use_nft = false;
   vault_account.initialized_close_vault = false;
 
@@ -121,7 +116,7 @@ pub fn handler(
   msg!("vault detail");
   print_vault_account(vault_account);
 
-  let weight = 1;
+  let weight = get_ten_time_weight(&package_number);
 
   let expected_current_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
 
@@ -136,7 +131,7 @@ pub fn handler(
     msg!("total_weighted_stake = 0");
     return err!(AtaSkakingError::UnknownError);
   }
-  epoch_state_account.total_weighted_stake += weight*staked_amount;
+  epoch_state_account.total_weighted_stake += (weight/10)*staked_amount; //dont for get to divide weight by 10
   
 
   print_epoch_state_account(epoch_state_account);

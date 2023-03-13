@@ -9,10 +9,11 @@ pub struct VaultAccount {
   pub staked_amount: u64, //8
   pub staked_time: i64, //8
   pub unlock_time: i64, //8
+  pub vesting_end_time: i64, //8
   pub use_nft: bool, //1
   pub initialized_close_vault: bool, //1
 }
 
 impl VaultAccount {
-  pub const LEN: usize = 8 + 32 + 32 + 32 + 1 + 8 + 8 + 8  + 1 + 1;
+  pub const LEN: usize = 8 + 32 + 32 + 32 + 1 + 8 + 8 + 8 + 8 + 1 + 1;
 }

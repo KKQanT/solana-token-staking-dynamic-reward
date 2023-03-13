@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token};
+use crate::get_ten_time_weight;
 use crate::state::{VaultAccount, PoolAccount, EpochStateAccount};
 use crate::errors::AtaSkakingError;
 use std::ops::DerefMut;
@@ -107,7 +108,7 @@ pub fn handler(
 
   token::transfer(cpi_ctx, vault_account.staked_amount)?;
 
-  let weight = 1;
+  let weight = get_ten_time_weight(&vault_account.package_number);
 
   let expected_current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
 
@@ -123,7 +124,7 @@ pub fn handler(
     return err!(AtaSkakingError::UnknownError);
   }
 
-  epoch_state_account.total_weighted_stake -= weight*vault_account.staked_amount;
+  epoch_state_account.total_weighted_stake -= (weight/10)*vault_account.staked_amount;
 
   print_epoch_state_account(epoch_state_account);
 

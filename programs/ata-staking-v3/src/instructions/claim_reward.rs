@@ -6,7 +6,7 @@ use crate::state::{
   EpochStateAccount,
   ClaimState
 };
-use crate::errors::*;
+use crate::{errors::*, get_ten_time_weight};
 use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 
 #[derive(Accounts)]
@@ -97,6 +97,16 @@ pub fn handler(
     return err!(TimeError::InvalidEpoch)
   }
 
+  if vault_account.package_number != 1 {
+    let vesting_end_time = vault_account.vesting_end_time;
+    let vesting_end_epoch = (vesting_end_time - EPOCH_START_TS)/EPOCH_DURATION;
+
+    if epoch > vesting_end_epoch {
+      msg!("epoch > vesting_end_epoch");
+      return  err!(TimeError::InvalidEpoch);
+    }
+  }
+  
   let claim_state_account = &mut ctx.accounts.claim_state_account;
   if claim_state_account.is_claimed {
     msg!("is claimed = True");
@@ -107,8 +117,8 @@ pub fn handler(
 
   let total_weighted_stake: u64 = epoch_state_account.total_weighted_stake;
   let total_reward_per_epoch: u64 = epoch_state_account.total_reward_per_epoch;
-  let weight: u64 = 1;
-  let weighted_stake: u64 = vault_account.staked_amount*weight;
+  let weight: u64 = get_ten_time_weight(&vault_account.package_number);
+  let weighted_stake: u64 = (weight/10)*vault_account.staked_amount;
   
   if weighted_stake > total_weighted_stake {
     msg!("weighted_stake > total_weighted_stake");

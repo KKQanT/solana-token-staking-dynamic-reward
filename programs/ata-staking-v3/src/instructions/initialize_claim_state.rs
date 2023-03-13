@@ -84,11 +84,21 @@ pub fn handler(
   let vault_account = &ctx.accounts.vault_account;
   let staked_time = vault_account.staked_time;
   let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
-
+  
   if staked_epoch > epoch {
     msg!("staked_epoch > epoch");
     return err!(TimeError::InvalidEpoch)
   } 
+
+  if vault_account.package_number != 1 {
+    let vesting_end_time = vault_account.vesting_end_time;
+    let vesting_end_epoch = (vesting_end_time - EPOCH_START_TS)/EPOCH_DURATION;
+
+    if epoch > vesting_end_epoch {
+      msg!("epoch > vesting_end_epoch");
+      return  err!(TimeError::InvalidEpoch);
+    }
+  }
 
   let claim_state_account = &mut ctx.accounts.claim_state_account;
   claim_state_account.is_claimed = false;
