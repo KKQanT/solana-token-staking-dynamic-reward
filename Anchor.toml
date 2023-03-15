@@ -8,7 +8,7 @@ ata_staking_v3 = "AtA3riahYEopN59jQu6gTL8Dix7XKunY2PBH3jnRv55u"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "mainnet"
 wallet = "update_auth.json"
 
 [scripts]
