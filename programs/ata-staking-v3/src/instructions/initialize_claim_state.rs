@@ -32,7 +32,6 @@ pub struct InitClaimReward<'info> {
   )]
   pub claim_state_account : Account<'info, ClaimState>,
   #[account(
-    mut,
     seeds = [
         b"pool",
         pool_account_owner.as_ref()
@@ -41,7 +40,6 @@ pub struct InitClaimReward<'info> {
   )]
   pub pool_account: Account<'info, PoolAccount>,
   #[account(
-    mut,
     seeds = [
       b"epoch_state",
       epoch.to_le_bytes().as_ref(),
@@ -51,7 +49,6 @@ pub struct InitClaimReward<'info> {
   )]
   pub epoch_state_account: Account<'info, EpochStateAccount>,
   #[account(
-    mut,
     seeds = [
       b"vault",
       vault_id.as_ref(),

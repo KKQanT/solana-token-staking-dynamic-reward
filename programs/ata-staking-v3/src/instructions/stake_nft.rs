@@ -43,7 +43,6 @@ pub struct StakeNFT<'info> {
   )]
   pub vault_account: Account<'info, VaultAccount>,
   #[account(
-    mut,
     seeds = [
         b"pool",
         pool_account_owner.as_ref()

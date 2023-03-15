@@ -46,6 +46,7 @@ pub struct CloseClaimReward<'info> {
     close = user
   )]
   pub claim_state_account : Account<'info, ClaimState>,
+  #[account(mut)]
   pub user: Signer<'info>,
   pub system_program: Program<'info, System>,
 }

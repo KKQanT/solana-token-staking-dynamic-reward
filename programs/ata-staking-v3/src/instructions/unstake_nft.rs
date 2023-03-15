@@ -8,10 +8,6 @@ use crate::state::{
   WhitelistNFTInfoAccount
 };
 use crate::errors::AtaSkakingError;
-use std::ops::DerefMut;
-use std::io::Cursor;
-use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
-use std::io::Write;
 use crate::constant::{METADATA_PROGRAM_ID, EPOCH_DURATION, EPOCH_START_TS};
 use crate::utils::{print_epoch_state_account};
 use anchor_spl::associated_token::get_associated_token_address;
@@ -38,11 +34,11 @@ pub struct UnstakeNFT<'info> {
         user.key().as_ref()
         ],
     bump=vault_bump,
+    close = user,
   )]
   pub vault_account: Account<'info, VaultAccount>,
 
   #[account(
-    mut,
     seeds=[
         b"pool",
         pool_account_owner.as_ref()
@@ -192,22 +188,6 @@ pub fn handler(
 
   let whitelist_nft_info_account = &mut ctx.accounts.whitelist_nft_info_account;
   whitelist_nft_info_account.is_staking = false;
-
-  **ctx.accounts.user.to_account_info().try_borrow_mut_lamports()? +=
-      **ctx.accounts.vault_account.to_account_info().try_borrow_lamports()?;
-  **ctx.accounts.vault_account.to_account_info().try_borrow_mut_lamports()? = 0;
-
-  let user_vault_account = ctx.accounts.vault_account.to_account_info();
-  let mut data = user_vault_account.try_borrow_mut_data()?;
-  for byte in data.deref_mut().iter_mut() {
-      *byte = 0;
-  }
-
-  let dst: &mut [u8] = &mut data;
-      let mut cursor = Cursor::new(dst);
-      cursor.write_all(&CLOSED_ACCOUNT_DISCRIMINATOR)
-            .map_err(|_| error!(ErrorCode::AccountDidNotSerialize))
-            .unwrap();
 
   Ok(())
 

@@ -25,7 +25,6 @@ pub struct UpdateEpoch<'info> {
   )]
   pub epoch_state_account : Account<'info, EpochStateAccount>,
   #[account(
-    mut,
     seeds=[
       b"epoch_state",
       prev_epoch.to_le_bytes().as_ref(),
@@ -69,7 +68,7 @@ pub fn handler(
   }
 
   if prev_epoch_state_account.total_weighted_stake == 0 {
-    msg!("total_weighted_stake = 0");
+    msg!("total_weighted_stake_prev = 0");
     return err!(AtaSkakingError::UnknownError)
   }
 
