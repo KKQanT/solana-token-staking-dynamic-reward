@@ -116,7 +116,8 @@ pub mod ata_staking_v3 {
         vault_bump: u8,
         pool_bump:u8,
         claim_state_bump: u8,
-        epoch_bump: u8
+        epoch_bump: u8,
+        total_earn_bump: u8
     ) -> Result<()> {
         instructions::claim_reward::handler(
             ctx, 
@@ -126,7 +127,8 @@ pub mod ata_staking_v3 {
             vault_bump, 
             pool_bump,
             claim_state_bump, 
-            epoch_bump
+            epoch_bump,
+            total_earn_bump
         )
     }
 
@@ -232,7 +234,6 @@ pub mod ata_staking_v3 {
         vault_bump: u8,
         pool_bump: u8,
         claim_state_bump: u8,
-        epoch_bump: u8
     ) -> Result<()> {
         instructions::close_claim_state::handler(
             ctx, 
@@ -242,8 +243,13 @@ pub mod ata_staking_v3 {
             vault_bump, 
             pool_bump, 
             claim_state_bump, 
-            epoch_bump
         )
+    }
+
+    pub fn init_total_earn(
+        ctx: Context<InitTotalEarn>
+    ) -> Result<()> {
+        instructions::init_total_earn::handler(ctx)
     }
 
     

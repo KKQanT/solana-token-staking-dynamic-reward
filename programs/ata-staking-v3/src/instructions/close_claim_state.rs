@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::state::{
   ClaimState, 
-  EpochStateAccount, 
   VaultAccount,
   PoolAccount
 };
@@ -14,7 +13,6 @@ use crate::state::{
   vault_bump: u8,
   pool_bump: u8,
   claim_state_bump: u8,
-  epoch_bump: u8
 )]
 
 pub struct CloseClaimReward<'info> {
@@ -48,15 +46,6 @@ pub struct CloseClaimReward<'info> {
     close = user
   )]
   pub claim_state_account : Account<'info, ClaimState>,
-  #[account(
-    seeds = [
-      b"epoch_state",
-      epoch.to_le_bytes().as_ref(),
-      pool_account_owner.as_ref()
-    ],
-    bump=epoch_bump
-  )]
-  pub epoch_state_account: Account<'info, EpochStateAccount>,
   pub user: Signer<'info>,
   pub system_program: Program<'info, System>,
 }
@@ -69,7 +58,6 @@ pub fn handler(
   _vault_bump: u8,
   _pool_bump: u8,
   _claim_state_bump: u8,
-  _epoch_bump: u8
 ) -> Result<()> {
   Ok(())
 }

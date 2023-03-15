@@ -11,6 +11,7 @@ pub mod stake_nft;
 pub mod unstake_nft;
 pub mod init_unstake;
 pub mod close_claim_state;
+pub mod init_total_earn;
 
 pub use initialize_stake_pool::*;
 pub use initialize_epoch_state_account::*;
@@ -25,3 +26,4 @@ pub use stake_nft::*;
 pub use unstake_nft::*;
 pub use init_unstake::*;
 pub use close_claim_state::*;
+pub use init_total_earn::*;

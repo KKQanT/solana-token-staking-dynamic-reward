@@ -4,7 +4,8 @@ use crate::state::{
   VaultAccount, 
   PoolAccount, 
   EpochStateAccount,
-  ClaimState
+  ClaimState,
+  TotalEarn
 };
 use crate::{errors::*, get_ten_time_weight};
 use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
@@ -17,7 +18,8 @@ use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
   vault_bump: u8,
   pool_bump: u8,
   claim_state_bump: u8,
-  epoch_bump: u8
+  epoch_bump: u8,
+  total_earn_bump: u8
 )]
 pub struct ClaimReward<'info> {
   #[account(
@@ -61,6 +63,15 @@ pub struct ClaimReward<'info> {
     bump=epoch_bump
   )]
   pub epoch_state_account: Account<'info, EpochStateAccount>,
+  #[account(
+    mut,
+    seeds = [
+      b"total_earn",
+      user.key().as_ref()
+    ],
+    bump = total_earn_bump
+  )]
+  pub total_earn_account: Account<'info, TotalEarn>,
   pub user: Signer<'info>,
   #[account(mut)]
   pub user_ata_token_account: Box<Account<'info, token::TokenAccount>>,
@@ -78,7 +89,8 @@ pub fn handler(
   _vault_bump: u8,
   pool_bump:u8,
   _claim_state_bump: u8,
-  _epoch_bump: u8
+  _epoch_bump: u8,
+  _total_earn_bump: u8
 ) -> Result<()> {
 
   let vault_account = &ctx.accounts.vault_account;
@@ -146,6 +158,9 @@ pub fn handler(
   token::transfer(cpi_ctx, reward_amount)?;
 
   claim_state_account.is_claimed = true;
+
+  let total_earn_account = &mut ctx.accounts.total_earn_account;
+  total_earn_account.total_earn_amount += reward_amount;
 
   Ok(())
 
