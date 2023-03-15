@@ -22,7 +22,6 @@ pub struct InitUnstake<'info> {
   )]
   pub vault_account: Account<'info, VaultAccount>,
   #[account(
-    mut,
     seeds = [
         b"pool",
         pool_account_owner.as_ref()
@@ -30,6 +29,7 @@ pub struct InitUnstake<'info> {
     bump=pool_bump
   )]
   pub pool_account: Account<'info, PoolAccount>,
+  #[account(mut)]
   pub user: Signer<'info>,
 }
 

@@ -23,7 +23,6 @@ use crate::constant::{EPOCH_DURATION, EPOCH_START_TS};
 )]
 pub struct ClaimReward<'info> {
   #[account(
-    mut,
     seeds = [
       b"vault",
       vault_id.as_ref(),
@@ -34,7 +33,6 @@ pub struct ClaimReward<'info> {
   )]
   pub vault_account: Account<'info, VaultAccount>,
   #[account(
-    mut,
     seeds = [
         b"pool",
         pool_account_owner.as_ref()
@@ -54,7 +52,6 @@ pub struct ClaimReward<'info> {
   )]
   pub claim_state_account : Account<'info, ClaimState>,
   #[account(
-    mut,
     seeds = [
       b"epoch_state",
       epoch.to_le_bytes().as_ref(),
@@ -72,6 +69,7 @@ pub struct ClaimReward<'info> {
     bump = total_earn_bump
   )]
   pub total_earn_account: Account<'info, TotalEarn>,
+  #[account(mut)]
   pub user: Signer<'info>,
   #[account(mut)]
   pub user_ata_token_account: Box<Account<'info, token::TokenAccount>>,
@@ -97,7 +95,7 @@ pub fn handler(
   
   let now_ts = Clock::get().unwrap().unix_timestamp;
   if now_ts < vault_account.unlock_time {
-    msg!("not unlock time");
+    msg!("not unlock and vesing period time");
     return err!(TimeError::InvalidTime);
   }
 
@@ -161,6 +159,8 @@ pub fn handler(
 
   let total_earn_account = &mut ctx.accounts.total_earn_account;
   total_earn_account.total_earn_amount += reward_amount;
+
+  msg!("epoch {} has is_claimed = {}", epoch, claim_state_account.is_claimed);
 
   Ok(())
 
