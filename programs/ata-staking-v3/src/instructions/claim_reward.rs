@@ -99,6 +99,12 @@ pub fn handler(
     return err!(TimeError::InvalidTime);
   }
 
+  let current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
+  if epoch >= current_epoch {
+    msg!("epoch >= current_epoch");
+    return err!(TimeError::InvalidTime);
+  }
+
   let staked_time = vault_account.staked_time;
   let staked_epoch = (staked_time - EPOCH_START_TS)/EPOCH_DURATION;
 
