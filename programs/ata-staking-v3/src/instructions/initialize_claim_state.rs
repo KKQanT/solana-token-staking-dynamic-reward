@@ -73,18 +73,6 @@ pub fn handler(
   _vault_bump: u8,
 ) -> Result<()> {
 
-  let now_ts = Clock::get().unwrap().unix_timestamp;
-  if now_ts < vault_account.unlock_time {
-    msg!("not unlock and vesing period time");
-    return err!(TimeError::InvalidTime);
-  }
-
-  let current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
-  if epoch >= current_epoch {
-    msg!("epoch >= current_epoch");
-    return err!(TimeError::InvalidTime);
-  }
-
   let epoch_state_account = &ctx.accounts.epoch_state_account;
   if epoch_state_account.total_weighted_stake == 0 {
     msg!("total_weighted_stake == 0");
@@ -114,6 +102,18 @@ pub fn handler(
       msg!("epoch > vesting_end_epoch");
       return  err!(TimeError::InvalidEpoch);
     }
+  }
+
+  let now_ts = Clock::get().unwrap().unix_timestamp;
+  if now_ts < vault_account.unlock_time {
+    msg!("not unlock and vesing period time");
+    return err!(TimeError::InvalidTime);
+  }
+
+  let current_epoch = (now_ts - EPOCH_START_TS)/EPOCH_DURATION;
+  if epoch >= current_epoch {
+    msg!("epoch >= current_epoch");
+    return err!(TimeError::InvalidTime);
   }
 
   let claim_state_account = &mut ctx.accounts.claim_state_account;
