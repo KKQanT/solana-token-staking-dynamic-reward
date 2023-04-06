@@ -141,7 +141,7 @@ pub fn handler(
     return err!(ConditionError::InvalidCondition);
   }
 
-  let reward_amount = (weighted_stake/total_weighted_stake) * total_reward_per_epoch;
+  let reward_amount = calculate_reward(weighted_stake, total_weighted_stake, total_reward_per_epoch);
 
   let pool_seeds = &[
       b"pool",
@@ -170,4 +170,17 @@ pub fn handler(
 
   Ok(())
 
+}
+
+pub fn calculate_reward(
+  weighted_stake: u64,
+  total_weighted_stake: u64,
+  total_reward_per_epoch: u64
+) -> u64 {
+  let weighted_stake_f64 = weighted_stake as f64;
+  let total_weighted_stake_f64 = total_weighted_stake as f64;
+  let total_reward_per_epoch_f64 = total_reward_per_epoch as f64;
+  let reward_amount_f64 = (weighted_stake_f64/total_weighted_stake_f64) * total_reward_per_epoch_f64;
+  let reward_amount = reward_amount_f64 as u64;
+  reward_amount
 }
