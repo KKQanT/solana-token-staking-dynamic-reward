@@ -4,6 +4,8 @@ use crate::state::{
   VaultAccount,
   PoolAccount
 };
+use crate::errors::ConditionError;
+
 
 #[derive(Accounts)]
 #[instruction( 
@@ -52,7 +54,7 @@ pub struct CloseClaimReward<'info> {
 }
 
 pub fn handler(
-  _ctx: Context<CloseClaimReward>,
+  ctx: Context<CloseClaimReward>,
   _vault_id: Pubkey,
   _pool_account_owner: Pubkey,
   _epoch: i64,
@@ -60,5 +62,13 @@ pub fn handler(
   _pool_bump: u8,
   _claim_state_bump: u8,
 ) -> Result<()> {
+  
+  let vault_account = &ctx.accounts.vault_account;
+
+  if vault_account.initialized_close_vault {
+    msg!("vault has been commited as closing vault");
+    return  err!(ConditionError::InvalidCondition);
+  }
+
   Ok(())
 }
