@@ -6,4 +6,4 @@ This program has 4 primary state accounts that allow for the dynamic calculation
 
 Dynamic reward formular
 
-$$ reward_{i,t} = {\frac{{stakedToken}_{i,t}}{ sum_{i = 1}^{N} stakedToken_{i,t}} * allocated_reward_{i,t}}$$
+$$ reward_{(i,t)} = \dfrac{stakedToken_{i,t}}{\sum\limits_{i=1}^{n}(stakedToken_{i,t})}\cdot allocatedReward_{t}$$
