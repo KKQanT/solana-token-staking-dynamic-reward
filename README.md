@@ -1,9 +1,18 @@
-# solana-token-staking-dynamic-reward
-Solana token staking smart contract with dynamic reward depending on dividual proportion of token staked. 
-
-This program has 4 primary state accounts that allow for the dynamic calculation of rewards based on the percentage of tokens contributed by stakers to the pool during each time interval (epoch). Just like the other staking programs, there are vault and pool account. Vault account is used to embed the staking info such as amount and time in which user start to stake. Pool account is used to be an authority account that hold the token that will be paid as reward to staker. However, in order to store the information used to calculate dynamic reward, I employed the epoch state accounts that used to stored
-
+# <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=025" with="25" height="25"> solana-token-staking-dynamic-reward
+Solana token staking smart contract (Can be used for both FT and NFT) with dynamic reward depending on dividual proportion of token staked. 
 
 Dynamic reward formular
 
 $$ reward_{(i,t)} = \dfrac{stakedToken_{i,t}}{\sum\limits_{i=1}^{n}(stakedToken_{i,t})}\cdot allocatedReward_{t}$$
+
+where
+
+- reward_i_t denoted claimable reward of vault ith at epoch t
+- stakedToken_i_t denoted amount of token stored in vault ith at epoch t
+- allocatedReward_t denoted amount of rewards distributed for staker at epoch t
+
+## Usage
+
+### Setup
+---
+For basic setup and deployment, I have written [here](https://github.com/KKQanT/solana-nft-staking-program-constant-reward/tree/master) in the setup section.
